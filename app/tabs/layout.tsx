@@ -5,12 +5,11 @@ import { StyleSheet, View } from 'react-native';
 export default function TabsLayout() {
   return (
     <View style={styles.container}>
-      <View style={styles.content}><Slot /></View>
+      <Slot />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { flex: 1, paddingBottom: 60 }, // leave space for footer
 }); 
