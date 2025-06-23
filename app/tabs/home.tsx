@@ -23,7 +23,7 @@ export default function BankingDashboard() {
         <View style={styles.header}>
           <View style={styles.logoCircle} />
           <View style={styles.headerText}>
-            <Text style={styles.welcome}>Welcome back, John!</Text>
+            <Text style={styles.welcome}>Welcome back, AYO!</Text>
             <Text style={styles.subtext}>Manage your finances with ease.</Text>
           </View>
         </View>
@@ -45,7 +45,7 @@ export default function BankingDashboard() {
             <Text style={styles.accountNumber}>****7890</Text>
             <View style={styles.balanceRow}>
               <Text style={styles.balance}>
-                {showSavingsBalance ? '₦25,000.50' : '•••••••'}
+                {showSavingsBalance ? '₦2,000,000,000' : '•••••••'}
               </Text>
               <TouchableOpacity onPress={() => setShowSavingsBalance(!showSavingsBalance)} style={{ padding: 4 }}>
                 <Feather name={showSavingsBalance ? 'eye-off' : 'eye'} size={20} color="#999" />
@@ -118,8 +118,10 @@ export default function BankingDashboard() {
   );
 }
 
+// f9f9f9
+
 const styles = StyleSheet.create({
-  container: { backgroundColor: '#f9f9f9', padding: 16 },
+  container: { backgroundColor: '#ffffff', padding: 16 },
   header: {
     backgroundColor: '#3b82f6',
     padding: 20,
@@ -150,7 +152,7 @@ const styles = StyleSheet.create({
   addAccountText: { fontSize: 12, color: '#374151' },
 
   card: {
-    backgroundColor: 'white',
+    backgroundColor: '#f9f9f9',
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
@@ -193,7 +195,7 @@ const styles = StyleSheet.create({
   // transactionDate: { fontSize: 12, color: '#6b7280' },
   // transactionStatus: { fontSize: 11, color: '#6b7280', marginTop: 2 },
   transactionRow: {
-    backgroundColor: 'white',
+    backgroundColor: '#f9f9f9',
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
