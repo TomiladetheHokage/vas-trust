@@ -10,6 +10,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import colors from '../../constants/colors';
 
 const { width, height } = Dimensions.get('window');
 
@@ -36,13 +37,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     return (
         <ScrollView contentContainerStyle={styles.container}>
             {/* Branding Section */}
-            <View style={styles.brandingContainer}>
+            {/* <View style={styles.brandingContainer}>
                 <View style={styles.logoCircle}>
                     <Feather name="credit-card" size={30} color="#fff" />
                 </View>
                 <Text style={styles.bankName}>SecureBank</Text>
                 <Text style={styles.tagline}>If ur aza no reach 2k this is the bank for you</Text>
-            </View>
+            </View> */}
 
             {/* Login Card */}
             <View style={styles.card}>
@@ -95,9 +96,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#fff',
+        backgroundColor: colors.background,
         alignItems: 'center',
-        paddingTop: 80,
+        paddingTop: 180,
         paddingBottom: 40,
         minHeight: height
     },
@@ -106,22 +107,23 @@ const styles = StyleSheet.create({
         marginBottom: 30
     },
     logoCircle: {
-        backgroundColor: '#2f66f8',
+        backgroundColor: colors.primary,
         padding: 16,
         borderRadius: 50,
         marginBottom: 10
     },
     bankName: {
         fontSize: 22,
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        color: colors.text
     },
     tagline: {
         fontSize: 13,
-        color: '#777'
+        color: colors.textSecondary
     },
     card: {
         width: width * 0.9,
-        backgroundColor: '#fff',
+        backgroundColor: colors.card,
         borderRadius: 14,
         padding: 24,
         elevation: 5
@@ -130,23 +132,25 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         textAlign: 'center',
-        marginBottom: 4
+        marginBottom: 4,
+        color: colors.text
     },
     subtitle: {
         fontSize: 12,
         textAlign: 'center',
-        color: '#555',
+        color: colors.textSecondary,
         marginBottom: 20
     },
     label: {
         fontSize: 14,
         marginBottom: 4,
-        fontWeight: '500'
+        fontWeight: '500',
+        color: colors.text
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#f3f4f6',
+        backgroundColor: colors.card,
         borderRadius: 8,
         paddingHorizontal: 10,
         marginBottom: 15
@@ -156,34 +160,36 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        paddingVertical: 10
+        paddingVertical: 10,
+        color: colors.text
     },
     forgotContainer: {
         alignSelf: 'flex-end',
         marginBottom: 20
     },
     forgot: {
-        color: '#2f66f8',
+        color: colors.primary,
         fontSize: 12,
         fontWeight: '500'
     },
     button: {
-        backgroundColor: '#2f66f8',
+        backgroundColor: colors.primary,
         paddingVertical: 14,
         borderRadius: 8
     },
     buttonText: {
-        color: '#fff',
+        color: colors.background,
         fontWeight: 'bold',
         textAlign: 'center'
     },
     bottomText: {
         textAlign: 'center',
         marginTop: 20,
-        fontSize: 12
+        fontSize: 12,
+        color: colors.textSecondary
     },
     signUp: {
-        color: '#2f66f8',
+        color: colors.primary,
         fontWeight: 'bold'
     }
 });

@@ -1,7 +1,7 @@
 // import React from 'react';
 import { Feather } from '@expo/vector-icons';
 import React, { useState } from 'react';
-
+import colors from '../../constants/colors';
 
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -23,7 +23,7 @@ export default function BankingDashboard() {
         <View style={styles.header}>
           <View style={styles.logoCircle} />
           <View style={styles.headerText}>
-            <Text style={styles.welcome}>Welcome back, AYO!</Text>
+            <Text style={styles.welcome}>Welcome back, Tomilade</Text>
             <Text style={styles.subtext}>Manage your finances with ease.</Text>
           </View>
         </View>
@@ -61,7 +61,7 @@ export default function BankingDashboard() {
             <Text style={styles.accountNumber}>****4321</Text>
             <View style={styles.balanceRow}>
               <Text style={styles.balance}>
-                {showCurrentBalance ? '₦15,750.25' : '•••••••'}
+                {showCurrentBalance ? '₦15,000,000' : '•••••••'}
               </Text>
               <TouchableOpacity onPress={() => setShowCurrentBalance(!showCurrentBalance)} style={{ padding: 4 }}>
                 <Feather name={showCurrentBalance ? 'eye-off' : 'eye'} size={20} color="#999" />
@@ -97,17 +97,19 @@ export default function BankingDashboard() {
           {/* Transaction Item 1 */}
           {(showAllTransactions ? transactions : transactions.slice(0, 2)).map((tx) => (
               <View key={tx.id} style={styles.transactionRow}>
-                <View style={tx.type === 'credit' ? styles.iconCircleGreen : styles.iconCircleRed}>
-                  <Text style={styles.iconArrow}>{tx.type === 'credit' ? '↩' : '↪'}</Text>
+                <View style={[styles.iconCircle, { backgroundColor: tx.type === 'credit' ? colors.success + '22' : colors.error + '22' }]}>
+                  <Feather
+                    name={tx.type === 'credit' ? 'arrow-down-left' : 'arrow-up-right'}
+                    size={18}
+                    color={tx.type === 'credit' ? colors.success : colors.error}
+                  />
                 </View>
                 <View style={styles.transactionDetails}>
                   <Text style={styles.transactionTitle}>{tx.title}</Text>
                   <Text style={styles.transactionDate}>{tx.date}</Text>
                 </View>
                 <View style={styles.transactionRight}>
-                  <Text style={tx.type === 'credit' ? styles.transactionAmountGreen : styles.transactionAmountRed}>
-                    {tx.amount}
-                  </Text>
+                  <Text style={styles.transactionAmount}>{tx.amount}</Text>
                   <Text style={styles.transactionStatus}>{tx.status}</Text>
                 </View>
               </View>
@@ -118,84 +120,74 @@ export default function BankingDashboard() {
   );
 }
 
-// f9f9f9
-
 const styles = StyleSheet.create({
-  container: { backgroundColor: '#ffffff', padding: 16 },
+  container: { backgroundColor: colors.background, padding: 16 },
   header: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: colors.primary,
     padding: 20,
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
   },
   logoCircle: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: '#e5e7eb', marginRight: 12,
+    width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, marginRight: 12,
   },
   headerText: { flex: 1 },
-  welcome: { color: 'white', fontSize: 24, fontWeight: 'bold' },
-  subtext: { color: '#dbeafe', fontSize: 16 },
+  welcome: { color: colors.background, fontSize: 24, fontWeight: 'bold' },
+  subtext: { color: colors.accent, fontSize: 16 },
 
   section2: { marginTop: 24, marginBottom: 50},
   section: { marginTop: 24},
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between', // pushes them to opposite ends
+    justifyContent: 'space-between',
     marginBottom: 10,
   },
 
-  sectionTitle: { fontSize: 16, fontWeight: '600' },
+  sectionTitle: { fontSize: 16, fontWeight: '600', color: colors.text },
   addAccountBtn: {
-    borderWidth: 1, borderColor: '#d1d5db', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6,
+    borderWidth: 1, borderColor: colors.border, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6,
   },
-  addAccountText: { fontSize: 12, color: '#374151' },
+  addAccountText: { fontSize: 12, color: colors.textSecondary },
 
   card: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: colors.card,
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
     shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
   },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardTitle: { fontSize: 15, fontWeight: '600' },
+  cardTitle: { fontSize: 15, fontWeight: '600', color: colors.text },
   accountType: {
-    backgroundColor: 'black', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999,
+    backgroundColor: colors.primary, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999,
   },
   accountTypeGray: {
-    backgroundColor: '#e5e7eb', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999,
+    backgroundColor: colors.card, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999,
   },
-  accountTypeText: { color: 'white', fontSize: 12 , fontWeight: 'bold',},
-  accountTypeTextGray: { color: '#111827', fontSize: 12, fontWeight: 'bold', },
-  accountNumber: { marginTop: 4, color: '#6b7280' },
-  balance: { marginTop: 10, fontSize: 20, fontWeight: 'bold' },
+  accountTypeText: { color: colors.background, fontSize: 12 , fontWeight: 'bold',},
+  accountTypeTextGray: { color: colors.text, fontSize: 12, fontWeight: 'bold', },
+  accountNumber: { marginTop: 4, color: colors.textSecondary },
+  balance: { marginTop: 10, fontSize: 20, fontWeight: 'bold', color: colors.text },
 
   actions: {
     flexDirection: 'row', gap: 12, marginTop: 24
   },
   transferBtn: {
-    backgroundColor: '#3b82f6', paddingVertical: 12, flex: 1, borderRadius: 8,
+    backgroundColor: colors.primary, paddingVertical: 12, flex: 1, borderRadius: 8,
     alignItems: 'center',
   },
   withdrawBtn: {
-    borderWidth: 1, borderColor: '#d1d5db', paddingVertical: 12, flex: 1, borderRadius: 8,
+    borderWidth: 1, borderColor: colors.primary, paddingVertical: 12, flex: 1, borderRadius: 8,
     alignItems: 'center',
   },
-  transferText: { color: 'white', fontWeight: 'bold' },
-  withdrawText: { color: '#1f2937', fontWeight: 'bold' },
+  transferText: { color: colors.background, fontWeight: 'bold' },
+  withdrawText: { color: colors.primary, fontWeight: 'bold' },
 
-  viewAll: { fontSize: 12, color: '#6b7280' },
-  // transactionCard: {
-  //   backgroundColor: 'white', padding: 16, borderRadius: 10, marginBottom: 12,
-  // },
-  // transactionTitle: { fontWeight: '600', marginBottom: 4 },
-  // transactionAmountGreen: { color: '#16a34a', fontWeight: 'bold' },
-  // transactionAmountRed: { color: '#dc2626', fontWeight: 'bold' },
-  // transactionDate: { fontSize: 12, color: '#6b7280' },
-  // transactionStatus: { fontSize: 11, color: '#6b7280', marginTop: 2 },
+  viewAll: { fontSize: 12, color: colors.textSecondary },
   transactionRow: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: colors.card,
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
@@ -203,29 +195,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  iconCircleGreen: {
+  iconCircle: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#d1fae5',
+    backgroundColor: colors.success + '22',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
-  },
-
-  iconCircleRed: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#fee2e2',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-
-  iconArrow: {
-    fontSize: 16,
-    color: '#111827',
   },
 
   transactionDetails: {
@@ -235,33 +212,29 @@ const styles = StyleSheet.create({
   transactionTitle: {
     fontWeight: '600',
     fontSize: 14,
+    color: colors.text,
   },
 
   transactionDate: {
     fontSize: 12,
-    color: '#6b7280',
+    color: colors.textSecondary,
   },
 
   transactionRight: {
     alignItems: 'flex-end',
   },
 
-  transactionAmountGreen: {
-    color: '#16a34a',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-
-  transactionAmountRed: {
-    color: '#dc2626',
+  transactionAmount: {
+    color: colors.text,
     fontWeight: 'bold',
     fontSize: 14,
   },
 
   transactionStatus: {
     fontSize: 11,
-    color: '#6b7280',
+    color: colors.success,
     marginTop: 2,
+    fontWeight: '400',
   },
 
   balanceRow: {
@@ -275,6 +248,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginLeft: 8,
   },
-
-
 });

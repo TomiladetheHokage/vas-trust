@@ -1,6 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import colors from '../../constants/colors';
 
 const navItems = [
   { key: 'home', label: 'Home', icon: 'grid' },
@@ -30,7 +31,7 @@ export default function Footer({ selected = 'home', onSelect = () => {} }: Foote
               <Feather
                 name={item.icon}
                 size={20}
-                color={isSelected ? '#fff' : '#222'}
+                color={isSelected ? colors.background : colors.text}
               />
             </View>
             <Text style={[styles.label, isSelected && styles.selectedLabel]}>{item.label}</Text>
@@ -46,16 +47,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
     paddingVertical: 8,
     paddingBottom: 30,
-    // shadowColor: '#000',
-    // shadowOffset: { width: 0, height: -2 },
-    // shadowOpacity: 0.08,
-    // shadowRadius: 4,
     elevation: 8,
     borderTopWidth: 0.5,
-    borderTopColor: '#eee',
+    borderTopColor: colors.border,
     position: 'absolute',
     left: 0,
     right: 0,
@@ -77,15 +74,15 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   selectedIconBox: {
-    backgroundColor: '#111',
+    backgroundColor: colors.primary,
   },
   label: {
     fontSize: 11,
-    color: '#222',
+    color: colors.text,
     marginTop: 0,
   },
   selectedLabel: {
-    color: '#111',
+    color: colors.primary,
     fontWeight: 'bold',
   },
 }); 
