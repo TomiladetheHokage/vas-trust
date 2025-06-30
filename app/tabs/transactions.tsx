@@ -121,10 +121,8 @@ export default function Transactions() {
                   <Text style={styles.transactionDate}>{tx.date}</Text>
                 </View>
                 <View style={styles.transactionRight}>
-                  <Text style={tx.type === 'credit' ? styles.transactionAmountGreen : styles.transactionAmountRed}>
-                    {tx.amount}
-                  </Text>
-                  <Text style={styles.transactionStatus}>{tx.status}</Text>
+                  <Text style={styles.transactionAmountBlack}>{tx.amount}</Text>
+                  <Text style={[styles.transactionStatus, styles.transactionStatusGreen]}>{tx.status}</Text>
                 </View>
               </View>
             );
@@ -265,13 +263,8 @@ const styles = StyleSheet.create({
   transactionRight: {
     alignItems: 'flex-end',
   },
-  transactionAmountGreen: {
-    color: colors.success,
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  transactionAmountRed: {
-    color: colors.error,
+  transactionAmountBlack: {
+    color: colors.text,
     fontWeight: 'bold',
     fontSize: 14,
   },
@@ -280,5 +273,13 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
     fontWeight: '400',
+  },
+  transactionStatusGreen: {
+    color: colors.success,
+    fontWeight: 'bold',
+  },
+  transactionStatusRed: {
+    color: colors.error,
+    fontWeight: 'bold',
   },
 }); 

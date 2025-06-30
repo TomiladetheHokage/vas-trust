@@ -85,10 +85,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                     <Text style={styles.buttonText}>Sign In</Text>
                 </TouchableOpacity>
 
-                <Text style={styles.bottomText}>
-                    Don't have an account?
-                    <Text style={styles.signUp} onPress={() => router.push('./register')}> Sign Up</Text>
-                </Text>
+                <TouchableOpacity style={{ marginTop: 20 }} onPress={() => router.push('/auth/register')}>
+                    <Text style={styles.bottomText}>
+                        Don't have an account?
+                        <Text style={styles.signUp}> Sign Up</Text>
+                    </Text>
+                </TouchableOpacity>
             </View>
         </ScrollView>
     );
@@ -184,7 +186,6 @@ const styles = StyleSheet.create({
     },
     bottomText: {
         textAlign: 'center',
-        marginTop: 20,
         fontSize: 12,
         color: colors.textSecondary
     },
