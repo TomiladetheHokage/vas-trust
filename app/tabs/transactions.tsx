@@ -1,7 +1,12 @@
 import { Feather } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import colors from '../../constants/colors';
+
+let AsyncStorage;
+if (Platform.OS !== 'web') {
+  AsyncStorage = require('@react-native-async-storage/async-storage').default;
+}
 
 const allTransactions = [
   { id: 1, type: 'credit', title: 'Salary Payment', date: '2024-07-22', amount: '+₦2,500', status: 'completed' },
@@ -18,18 +23,43 @@ type DateFilter = '7d' | '30d' | 'all';
 export default function Transactions() {
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<DateFilter>('all');
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const filtered = allTransactions.filter(tx => {
+  useEffect(() => {
+    setLoading(true);
+    setError('');
+    fetch('http://localhost/vastrust/public/transactions/1188036538?page=1', {
+      headers: {
+        'Authorization': 'Basic dmFzdHJ1c3RfYXBpOjEyMzQ1Njc4OQ=='
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          setTransactions(data.data.transactions);
+        } else {
+          setError(data.message || 'Failed to fetch transactions');
+        }
+      })
+      .catch(() => setError('Failed to fetch transactions'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = transactions.filter((tx: any) => {
     const matchesSearch =
       search.trim() === '' ||
-      tx.title.toLowerCase().includes(search.trim().toLowerCase());
+      (tx.description && tx.description.toLowerCase().includes(search.trim().toLowerCase())) ||
+      (tx.sender_account && tx.sender_account.includes(search.trim())) ||
+      (tx.receiver_account && tx.receiver_account.includes(search.trim()));
 
     if (activeFilter === 'all') {
       return matchesSearch;
     }
 
     const today = new Date();
-    const txDate = new Date(tx.date);
+    const txDate = new Date(tx.created_at);
     const daysDiff = (today.getTime() - txDate.getTime()) / (1000 * 3600 * 24);
 
     if (activeFilter === '7d' && daysDiff > 7) {
@@ -43,18 +73,16 @@ export default function Transactions() {
   });
 
   const totalCredits = filtered
-    .filter(tx => tx.type === 'credit')
-    .reduce((sum, tx) => sum + parseFloat(tx.amount.replace(/[^\d.-]/g, '')), 0);
+    .filter((tx: any) => tx.receiver_account === '1188036538')
+    .reduce((sum, tx) => sum + parseFloat(tx.amount), 0);
   const totalDebits = filtered
-    .filter(tx => tx.type === 'debit')
-    .reduce((sum, tx) => sum + Math.abs(parseFloat(tx.amount.replace(/[^\d.-]/g, ''))), 0);
+    .filter((tx: any) => tx.sender_account === '1188036538')
+    .reduce((sum, tx) => sum + Math.abs(parseFloat(tx.amount)), 0);
 
-  const getIcon = (tx: Transaction) => {
-    if (tx.title.toLowerCase().includes('salary')) return { icon: 'arrow-down-left' as const, color: colors.success, bg: '#d1fae5' };
-    if (tx.title.toLowerCase().includes('atm')) return { icon: 'arrow-up-right' as const, color: colors.error, bg: '#fee2e2' };
-    if (tx.title.toLowerCase().includes('transfer')) return { icon: 'repeat' as const, color: colors.primary, bg: colors.card };
-    if (tx.type === 'credit') return { icon: 'arrow-down-left' as const, color: colors.success, bg: '#d1fae5' };
-    return { icon: 'arrow-up-right' as const, color: colors.error, bg: '#fee2e2' };
+  const getIcon = (tx: any) => {
+    if (tx.type === 'transfer' && tx.sender_account === '1188036538') return { icon: 'arrow-up-right' as const, color: colors.error, bg: '#fee2e2' };
+    if (tx.type === 'transfer' && tx.receiver_account === '1188036538') return { icon: 'arrow-down-left' as const, color: colors.success, bg: '#d1fae5' };
+    return { icon: 'repeat' as const, color: colors.primary, bg: colors.card };
   };
 
   return (
@@ -106,10 +134,14 @@ export default function Transactions() {
       </View>
 
       <View style={{ marginTop: 24 }}>
-        {filtered.length === 0 ? (
+        {loading ? (
+          <Text style={{ color: colors.placeholder, textAlign: 'center', marginTop: 32 }}>Loading...</Text>
+        ) : error ? (
+          <Text style={{ color: colors.error, textAlign: 'center', marginTop: 32 }}>{error}</Text>
+        ) : filtered.length === 0 ? (
           <Text style={{ color: colors.placeholder, textAlign: 'center', marginTop: 32 }}>No transactions found.</Text>
         ) : (
-          filtered.map((tx: Transaction) => {
+          filtered.map((tx: any) => {
             const icon = getIcon(tx);
             return (
               <View key={tx.id} style={styles.transactionRow}>
@@ -117,11 +149,11 @@ export default function Transactions() {
                   <Feather name={icon.icon} size={18} color={icon.color} />
                 </View>
                 <View style={styles.transactionDetails}>
-                  <Text style={styles.transactionTitle}>{tx.title}</Text>
-                  <Text style={styles.transactionDate}>{tx.date}</Text>
+                  <Text style={styles.transactionTitle}>{tx.description || tx.type}</Text>
+                  <Text style={styles.transactionDate}>{tx.created_at}</Text>
                 </View>
                 <View style={styles.transactionRight}>
-                  <Text style={styles.transactionAmountBlack}>{tx.amount}</Text>
+                  <Text style={styles.transactionAmountBlack}>{tx.sender_account === '1188036538' ? '-' : '+'}₦{parseFloat(tx.amount).toLocaleString()}</Text>
                   <Text style={[styles.transactionStatus, styles.transactionStatusGreen]}>{tx.status}</Text>
                 </View>
               </View>

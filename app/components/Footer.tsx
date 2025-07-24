@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import colors from '../../constants/colors';
 
 const navItems = [
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.background,
     paddingVertical: 8,
-    paddingBottom: 30,
+    paddingBottom: Platform.OS === 'web' ? 8 : 30,
     elevation: 8,
     borderTopWidth: 0.5,
     borderTopColor: colors.border,

@@ -1,29 +1,182 @@
 // import React from 'react';
 import { Feather } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import colors from '../../constants/colors';
 
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { ActivityIndicator, Button, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
+// Dynamic AsyncStorage import for native only
+let AsyncStorage: any;
+if (Platform.OS !== 'web') {
+  AsyncStorage = require('@react-native-async-storage/async-storage').default;
+}
+
+type Profile = {
+  id: number;
+  email: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+  passport_photo: string | null;
+  age: number;
+  occupation: string;
+  address: string;
+  phone_number: string;
+  bvn: string;
+  nok_first_name: string;
+  nok_last_name: string;
+  nok_phone_number: string;
+  nok_address: string;
+  created_at: string;
+  role: string;
+  transaction_pin: string;
+  account_number: string;
+  balance?: string;
+};
+
+// Add a helper to format the balance
+function formatNairaBalance(balance?: string) {
+  if (!balance) return '₦0';
+  // Remove any non-digit/decimal except dot
+  const num = parseFloat(balance.replace(/[^\d.]/g, ''));
+  if (isNaN(num)) return balance.startsWith('₦') ? balance : `₦${balance}`;
+  return `₦${num.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
 
 export default function BankingDashboard() {
   const [showSavingsBalance, setShowSavingsBalance] = useState(false);
   const [showCurrentBalance, setShowCurrentBalance] = useState(false);
   const [showAllTransactions, setShowAllTransactions] = useState(false);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [inputPassword, setInputPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(true);
 
-  const transactions = [
-    { id: 1, type: 'credit', title: 'Salary Payment', date: '2024-01-15', amount: '+₦2,500', status: 'completed' },
-    { id: 2, type: 'debit', title: 'ATM Withdrawal', date: '2024-01-14', amount: '-₦150', status: 'completed' },
-    { id: 3, type: 'credit', title: 'Refund', date: '2024-01-13', amount: '+₦500', status: 'completed' },
-    { id: 4, type: 'debit', title: 'POS Purchase', date: '2024-01-12', amount: '-₦1,200', status: 'completed' },
-  ];
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setLoading(true);
+      setError('');
+      let userId;
+      if (Platform.OS === 'web') {
+        userId = localStorage.getItem('user_id');
+      } else {
+        userId = await AsyncStorage.getItem('user_id');
+      }
+      if (!userId) {
+        setError('No user ID found. Please log in again.');
+          setLoading(false);
+          return;
+        }
+      const BASIC_AUTH = 'Basic ' + (Platform.OS === 'web'
+        ? btoa('vastrust_api:123456789')
+        : require('buffer').Buffer.from('vastrust_api:123456789').toString('base64')
+        );
+      try {
+        const res = await fetch(`http://localhost/vastrust/public/profile/${userId}`, {
+          headers: { 'Authorization': BASIC_AUTH }
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          setProfile(data.data);
+          if (Platform.OS === 'web') {
+            localStorage.setItem('profile', JSON.stringify(data.data));
+          } else {
+            await AsyncStorage.setItem('profile', JSON.stringify(data.data));
+          }
+        } else {
+          setError(data.message || 'Failed to fetch profile.');
+        }
+      } catch (e) {
+        setError('Failed to fetch profile.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      setTransactionsLoading(true);
+      let accountNumber;
+      // Try to get account number from profile state first
+      if (profile && profile.account_number) {
+        accountNumber = profile.account_number;
+      } else {
+        let profileRaw;
+        if (Platform.OS === 'web') {
+          profileRaw = localStorage.getItem('profile');
+        } else {
+          profileRaw = await AsyncStorage.getItem('profile');
+        }
+        if (profileRaw) {
+          try {
+            const parsed = JSON.parse(profileRaw);
+            accountNumber = parsed.account_number;
+          } catch {}
+        }
+      }
+      if (!accountNumber) {
+        setTransactions([]);
+        setTransactionsLoading(false);
+        return;
+      }
+      const BASIC_AUTH = 'Basic ' + (Platform.OS === 'web'
+        ? btoa('vastrust_api:123456789')
+        : require('buffer').Buffer.from('vastrust_api:123456789').toString('base64')
+      );
+      try {
+        const res = await fetch(`http://localhost/vastrust/public/transactions/${accountNumber}?page=1`, {
+          headers: { 'Authorization': BASIC_AUTH }
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          setTransactions(data.data.transactions || []);
+        } else {
+          setTransactions([]);
+        }
+      } catch (e) {
+        setTransactions([]);
+      } finally {
+        setTransactionsLoading(false);
+      }
+    };
+    fetchTransactions();
+  }, [profile]);
 
   return (
       <ScrollView style={styles.container}>
+        {/* Subtle notification to complete profile */}
+        <TouchableOpacity style={styles.profileNotice} onPress={() => router.push('/tabs/settings')}>
+          <Text style={styles.profileNoticeText}>Tap here to complete your profile</Text>
+        </TouchableOpacity>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, Platform.OS === 'web' && { marginTop: 8 }]}>
           <View style={styles.logoCircle} />
           <View style={styles.headerText}>
-            <Text style={styles.welcome}>Welcome back, Tomilade</Text>
+            {profile ? (
+              <>
+                <Text style={styles.welcome}>Welcome back, {profile.first_name} {profile.last_name}</Text>
+                {error && (
+                  <Text style={{ color: 'orange', fontSize: 12, marginTop: 4 }}>
+                    Offline: showing last saved data
+                  </Text>
+                )}
+              </>
+            ) : loading ? (
+              <Text style={styles.welcome}>Loading...</Text>
+            ) : (
+              <Text style={[styles.welcome, { color: 'red', fontSize: 14 }]}>
+                {error || 'No profile data available.'}
+              </Text>
+            )}
             <Text style={styles.subtext}>Manage your finances with ease.</Text>
           </View>
         </View>
@@ -31,9 +184,9 @@ export default function BankingDashboard() {
         {/* Accounts Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Your Accounts</Text>
-            <TouchableOpacity style={styles.addAccountBtn}>
-              <Text style={styles.addAccountText}>+ Add Account</Text>
+            <Text style={styles.sectionTitle}>My Accounts</Text>
+            <TouchableOpacity style={styles.addAccountBtn} onPress={() => setShowPasswordModal(true)}>
+              <Text style={styles.addAccountText}>View All</Text>
             </TouchableOpacity>
           </View>
 
@@ -42,10 +195,12 @@ export default function BankingDashboard() {
               <Text style={styles.cardTitle}>Savings Account</Text>
               <View style={styles.accountType}><Text style={styles.accountTypeText}>Savings</Text></View>
             </View>
-            <Text style={styles.accountNumber}>****7890</Text>
+            <Text style={styles.accountNumber}>
+              Account number: {profile?.account_number || 'No account number'}
+            </Text>
             <View style={styles.balanceRow}>
               <Text style={styles.balance}>
-                {showSavingsBalance ? '₦2,000,000,000' : '•••••••'}
+                {showSavingsBalance ? formatNairaBalance(profile?.balance) : '•••••••'}
               </Text>
               <TouchableOpacity onPress={() => setShowSavingsBalance(!showSavingsBalance)} style={{ padding: 4 }}>
                 <Feather name={showSavingsBalance ? 'eye-off' : 'eye'} size={20} color="#999" />
@@ -53,7 +208,7 @@ export default function BankingDashboard() {
             </View>
           </View>
 
-          <View style={styles.card}>
+          {/* <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>Current Account</Text>
               <View style={styles.accountTypeGray}><Text style={styles.accountTypeTextGray}>Current</Text></View>
@@ -67,18 +222,18 @@ export default function BankingDashboard() {
                 <Feather name={showCurrentBalance ? 'eye-off' : 'eye'} size={20} color="#999" />
               </TouchableOpacity>
             </View>
-          </View>
+          </View> */}
         </View>
 
         {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.actions}>
-            <TouchableOpacity style={styles.transferBtn}>
+            <TouchableOpacity style={styles.transferBtn} onPress={() => router.push('/tabs/transfer-options')}>
               <Text style={styles.transferText}>↗ Transfer</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.withdrawBtn}>
-              <Text style={styles.withdrawText}>↙ Withdraw</Text>
+            <TouchableOpacity style={styles.withdrawBtn} onPress={() => router.push('/tabs/deposit')}>
+              <Text style={styles.withdrawText}>↙ Deposit</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -93,41 +248,96 @@ export default function BankingDashboard() {
               </Text>
             </TouchableOpacity>
           </View>
-
-          {/* Transaction Item 1 */}
-          {(showAllTransactions ? transactions : transactions.slice(0, 2)).map((tx) => (
-              <View key={tx.id} style={styles.transactionRow}>
-                <View style={[styles.iconCircle, { backgroundColor: tx.type === 'credit' ? colors.success + '22' : colors.error + '22' }]}>
+          {transactionsLoading ? (
+            <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />
+          ) : (
+            (showAllTransactions ? transactions : transactions.slice(0, 10)).length === 0 ? (
+              <Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: 24 }}>No recent transactions</Text>
+            ) : (
+              (showAllTransactions ? transactions : transactions.slice(0, 10)).map((tx, idx) => {
+                // Determine credit or debit
+                const isCredit = tx.receiver_account === profile?.account_number;
+                const isDebit = tx.sender_account === profile?.account_number;
+                // Counterparty account
+                const counterparty = isCredit ? tx.sender_account : tx.receiver_account;
+                // Title/description
+                const description = tx.description || (isCredit ? `From ${counterparty}` : `To ${counterparty}`);
+                return (
+                  <View key={tx.id || idx} style={styles.transactionRow}>
+                    <View style={[styles.iconCircle, { backgroundColor: isCredit ? colors.success + '22' : colors.error + '22' }]}> 
                   <Feather
-                    name={tx.type === 'credit' ? 'arrow-down-left' : 'arrow-up-right'}
+                        name={isCredit ? 'arrow-down-left' : 'arrow-up-right'}
                     size={18}
-                    color={tx.type === 'credit' ? colors.success : colors.error}
+                        color={isCredit ? colors.success : colors.error}
                   />
                 </View>
                 <View style={styles.transactionDetails}>
-                  <Text style={styles.transactionTitle}>{tx.title}</Text>
-                  <Text style={styles.transactionDate}>{tx.date}</Text>
+                      <Text style={styles.transactionTitle}>{description}</Text>
+                      <Text style={styles.transactionDate}>{tx.created_at || tx.date || ''}</Text>
                 </View>
                 <View style={styles.transactionRight}>
-                  <Text style={styles.transactionAmount}>{tx.amount}</Text>
-                  <Text style={styles.transactionStatus}>{tx.status}</Text>
+                      <Text style={styles.transactionAmount}>{(isCredit ? '+' : '-') + '₦' + Number(tx.amount).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+                      <Text style={styles.transactionStatus}>{tx.status || (isCredit ? 'credit' : 'debit')}</Text>
                 </View>
               </View>
-          ))}
+                );
+              })
+            )
+          )}
         </View>
+
+        <Modal visible={showPasswordModal} transparent animationType="fade">
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)' }}>
+            <View style={{ backgroundColor: 'white', padding: 24, borderRadius: 12, width: '80%', alignItems: 'center', position: 'relative' }}>
+              <Pressable onPress={() => { setShowPasswordModal(false); setInputPassword(''); setPasswordError(''); }} style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}>
+                <Text style={{ fontSize: 20, color: '#888' }}>×</Text>
+              </Pressable>
+              <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 12 }}>Enter your password</Text>
+              <TextInput
+                secureTextEntry
+                value={inputPassword}
+                onChangeText={setInputPassword}
+                placeholder="Password"
+                style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 10, marginBottom: 10, width: '100%' }}
+              />
+              {passwordError ? <Text style={{ color: 'red', marginBottom: 8 }}>{passwordError}</Text> : null}
+              <Button title="Submit" onPress={async () => {
+                let storedPassword;
+                if (Platform.OS === 'web') {
+                  storedPassword = localStorage.getItem('password');
+                } else {
+                  storedPassword = await AsyncStorage.getItem('password');
+                }
+                if (inputPassword === storedPassword) {
+                  setShowPasswordModal(false);
+                  setInputPassword('');
+                  setPasswordError('');
+                  router.push('/tabs/all-accounts');
+                } else {
+                  setPasswordError('Incorrect password');
+                }
+              }} />
+            </View>
+          </View>
+        </Modal>
 
       </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: colors.background, padding: 16 },
+  container: {
+    backgroundColor: colors.background,
+    padding: 16,
+    ...(Platform.OS === 'web' ? { paddingBottom: 56 } : {}), // Add extra bottom padding for web
+  },
   header: {
     backgroundColor: colors.primary,
     padding: 20,
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    ...(Platform.OS === 'web' ? { marginTop: 24 } : {}),
   },
   logoCircle: {
     width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, marginRight: 12,
@@ -247,5 +457,21 @@ const styles = StyleSheet.create({
   eyeIcon: {
     fontSize: 18,
     marginLeft: 8,
+  },
+  profileNotice: {
+    backgroundColor: '#FFF9C4', // light yellow
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginBottom: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFEB3B', // yellow border
+  },
+  profileNoticeText: {
+    color: '#795200', // dark yellow/brown for contrast
+    fontSize: 13,
+    textDecorationLine: 'underline',
+    fontWeight: 'bold',
   },
 });

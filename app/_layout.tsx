@@ -6,7 +6,7 @@ import Header from './components/Header';
 
 const tabMap = [
   { key: 'home', route: '/tabs/home' },
-  { key: 'transfer', route: '/tabs/transfer' },
+  { key: 'transfer', route: '/tabs/transfer-options' },
   { key: 'history', route: '/tabs/transactions' },
   { key: 'profile', route: '/tabs/profile' },
 ];

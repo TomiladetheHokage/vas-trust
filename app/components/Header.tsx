@@ -12,9 +12,11 @@ export default function Header({ onLogout }: HeaderProps) {
   const { top } = useSafeAreaInsets();
 
   return (
-      <View style={[styles.header,
+      <View style={[
+        styles.header,
         Platform.OS === 'android' && { paddingTop: top + 12 },
-        Platform.OS === 'ios' && { paddingTop: 6 }
+        Platform.OS === 'ios' && { paddingTop: 6 },
+        Platform.OS === 'web' && { marginTop: 32 }
       ]}>
         <View style={styles.leftContainer}>
           <View style={styles.logoBox}>
